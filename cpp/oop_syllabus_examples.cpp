@@ -3,8 +3,6 @@
 #include <utility>
 
 // This file is intentionally small and educational. It demonstrates syllabus topics
-// that are not required by the hashing engine itself, so the project can be shown
-// as an OOP laboratory exercise during a viva.
 
 class AuditIdentity {
 protected:
