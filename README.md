@@ -1,6 +1,6 @@
 # File Integrity Verification Tool
 
-A college OOP project that combines a **C++20 hashing engine (~25% of the application)** with a **Python backend and SQLite (~75%)**, plus a polished browser UI.
+A OOP project that combines a **C++20 hashing engine (~25% of the application)** with a **Python backend and SQLite (~75%)**, plus a polished browser UI.
 
 The project is designed for two modes:
 
@@ -54,7 +54,7 @@ file-integrity-tool/
 └── README.md
 ```
 
-## OOP mapping for your college syllabus
+## OOP mapping
 
 | College topic | Project implementation |
 |---|---|
@@ -204,7 +204,3 @@ The deployed site will receive a `*.pages.dev` address.
 A Cloudflare Pages static deployment does **not** run your local Flask process or local C++ executable. The cloud version therefore uses the same UI and performs SHA-256 in the browser. The full Python + C++ path scanner remains available when you run the repository locally.
 
 This split is deliberate: it keeps the project genuinely deployable on Pages while still making C++ and Python the main implementation for the full local version.
-
-## Suggested project statement
-
-> **File Integrity Verification Tool** is an object-oriented security utility that creates SHA-256 integrity baselines for files and detects modification, addition, or deletion by comparing a current scan with a trusted baseline. The system uses C++20 for the hashing/scanning core and Python for orchestration, persistence, APIs, reporting, and application logic.
