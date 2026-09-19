@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+backend/integrity.db
+.DS_Store
+Thumbs.db
+cpp/integrity_engine
+cpp/integrity_engine.exe
+.vscode/
+.idea/

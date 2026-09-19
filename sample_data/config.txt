@@ -1,0 +1,4 @@
+app_name=File Integrity Verification Tool
+algorithm=SHA-256
+mode=demo
+the goat CR7

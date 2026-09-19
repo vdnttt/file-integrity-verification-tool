@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="File Integrity Verification Tool — OOP project using C++20 and Python with a Cloudflare Pages-ready browser UI.">
+  <title>File Integrity Verification Tool</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">FI</div>
+      <div>
+        <div class="brand-title">File Integrity Verification</div>
+        <div class="brand-subtitle">C++20 core • Python orchestration • Cloudflare Pages UI</div>
+      </div>
+    </div>
+    <div class="mode-wrap">
+      <span id="modeDot" class="mode-dot"></span>
+      <span id="modeLabel">Detecting runtime…</span>
+      <button id="themeBtn" class="icon-btn" title="Toggle theme">☾</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero card">
+      <div>
+        <div class="eyebrow">INTEGRITY MONITOR</div>
+        <h1>Detect changed, added and deleted files.</h1>
+        <p>Build a trusted SHA-256 baseline, scan a folder, and verify the current state with an audit-friendly report.</p>
+      </div>
+      <div class="hero-actions">
+        <button id="newScanBtn" class="btn primary">New scan</button>
+        <button id="exportBtn" class="btn secondary" disabled>Export report</button>
+      </div>
+    </section>
+
+    <section class="stats-grid">
+      <div class="stat card"><span>Files scanned</span><strong id="statScanned">0</strong><small>Current scan</small></div>
+      <div class="stat card"><span>Unchanged</span><strong id="statUnchanged">0</strong><small>Match baseline</small></div>
+      <div class="stat card"><span>Modified</span><strong id="statModified">0</strong><small>Hash changed</small></div>
+      <div class="stat card"><span>Added / Deleted</span><strong id="statEdge">0 / 0</strong><small>Structure changes</small></div>
+    </section>
+
+    <section class="workspace">
+      <div class="left-col">
+        <div class="card panel">
+          <div class="panel-head">
+            <div>
+              <h2>1. Choose files or a folder</h2>
+              <p>Browser mode hashes selected files locally with the Web Crypto API.</p>
+            </div>
+            <span id="scanBadge" class="badge neutral">Ready</span>
+          </div>
+
+          <div class="scan-buttons">
+            <label class="dropbox" for="fileInput">
+              <input id="fileInput" type="file" multiple hidden>
+              <span class="drop-icon">＋</span>
+              <b>Select files</b>
+              <span>Choose one or more files</span>
+            </label>
+            <label class="dropbox" for="folderInput">
+              <input id="folderInput" type="file" webkitdirectory directory multiple hidden>
+              <span class="drop-icon">⌁</span>
+              <b>Select folder</b>
+              <span>Choose a folder recursively</span>
+            </label>
+          </div>
+
+          <div class="selected-row">
+            <span class="muted">Selected:</span>
+            <strong id="selectedCount">0 files</strong>
+            <button id="clearSelection" class="text-btn">Clear</button>
+          </div>
+
+          <div class="progress-wrap">
+            <div class="progress-label"><span id="progressText">Idle</span><span id="progressPct">0%</span></div>
+            <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+          </div>
+
+          <div class="action-row">
+            <button id="scanBtn" class="btn primary" disabled>Calculate SHA-256</button>
+            <button id="serverScanBtn" class="btn secondary" disabled>Scan server folder</button>
+          </div>
+
+          <div id="serverScanBox" class="server-box hidden">
+            <label for="serverPath">Local server folder path</label>
+            <div class="inline-form">
+              <input id="serverPath" class="input" placeholder="e.g. C:\\Users\\You\\Documents\\project or /home/you/project">
+              <button id="runServerScan" class="btn secondary">Run C++ scan</button>
+            </div>
+            <small>Available only when the Python backend is running locally. The Python API calls the C++20 hashing engine.</small>
+          </div>
+        </div>
+
+        <div class="card panel">
+          <div class="panel-head">
+            <div>
+              <h2>2. Baseline & verification</h2>
+              <p>Create a snapshot first, then compare later scans against it.</p>
+            </div>
+          </div>
+          <div class="baseline-grid">
+            <div class="baseline-create">
+              <label for="baselineName">Baseline name</label>
+              <div class="inline-form">
+                <input id="baselineName" class="input" value="Project Baseline">
+                <button id="saveBaseline" class="btn primary" disabled>Save baseline</button>
+              </div>
+              <div class="helper">A baseline stores path + SHA-256 + file size. No file contents are uploaded.</div>
+            </div>
+            <div class="baseline-select">
+              <label for="baselineSelect">Baseline to verify against</label>
+              <select id="baselineSelect" class="input"></select>
+              <button id="verifyBtn" class="btn secondary full" disabled>Verify current scan</button>
+            </div>
+          </div>
+          <div class="import-row">
+            <button id="importBtn" class="text-btn">Import baseline JSON</button>
+            <input id="importInput" type="file" accept="application/json" hidden>
+            <button id="clearDataBtn" class="text-btn danger-text">Clear stored local data</button>
+          </div>
+        </div>
+
+        <div id="resultPanel" class="card panel hidden">
+          <div class="panel-head">
+            <div>
+              <h2>Verification result</h2>
+              <p id="resultNote">No verification has been run.</p>
+            </div>
+            <span id="resultBadge" class="badge neutral">—</span>
+          </div>
+          <div id="findings" class="findings"></div>
+        </div>
+
+        <div class="card panel">
+          <div class="panel-head">
+            <div>
+              <h2>Current scan records</h2>
+              <p>Hashes are shown for review. Use the filter to inspect a specific file.</p>
+            </div>
+            <input id="recordFilter" class="input search" placeholder="Filter path…">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Path</th><th>Size</th><th>SHA-256</th><th>Status</th></tr></thead>
+              <tbody id="recordsBody"><tr><td colspan="4" class="empty">No scan yet.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <aside class="right-col">
+        <div class="card panel sticky">
+          <div class="panel-head"><div><h2>History</h2><p>Recent verification runs.</p></div></div>
+          <div id="historyList" class="history-list"><div class="empty">No history yet.</div></div>
+        </div>
+
+        <div class="card panel">
+          <h2>Project architecture</h2>
+          <div class="architecture">
+            <div class="arch-block cpp"><b>C++20 core</b><span>SHA-256 • FileRecord • Inheritance • Polymorphism</span></div>
+            <div class="arch-arrow">↓</div>
+            <div class="arch-block py"><b>Python backend</b><span>Flask • SQLite • API • orchestration</span></div>
+            <div class="arch-arrow">↓</div>
+            <div class="arch-block web"><b>Web UI</b><span>HTML • CSS • JavaScript • Web Crypto</span></div>
+          </div>
+        </div>
+
+        <div class="card panel tips">
+          <h2>OOP concepts demonstrated</h2>
+          <div class="chip-list">
+            <span>Class / Object</span><span>Encapsulation</span><span>Abstraction</span><span>Inheritance</span><span>Polymorphism</span><span>Virtual Function</span><span>Static Member</span><span>Friendship</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <footer>
+      <span>File Integrity Verification Tool • Educational project</span>
+      <span>SHA-256 • Baseline comparison • JSON reporting</span>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
